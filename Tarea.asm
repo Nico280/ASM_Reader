@@ -2,35 +2,49 @@
 .stack 100h
 
 .data
-    filename db "EXAMPLE.TXT", 0
+    filename db "", 0
     buffer db 100 dup("$")
+    msg db "Ingrese el nombre del archivo: $"
 
 .code
     mov ax, @data
     mov ds, ax
 
-    ; open file
-    mov ah, 3dh
-    mov al, 0
-    lea dx, filename
-    int 21h
-    mov bx, ax
-
-    ; read file
-    mov ah, 3fh
-    mov cx, 100
-    lea dx, buffer
-    int 21h
-
-    ; print file contents
-    mov ah, 9h
-    lea dx, buffer
-    int 21h
-
-    ; close file
-    mov ah, 3eh
-    int 21h
+    call read_file 
 
     mov ah, 4ch
     int 21h
-end
+    read_file proc
+
+       mov ah, 9
+       mov dx, offset msg
+       int 21h
+       mov ah, 0Ah
+       mov dx, offset filename
+       int 21h   
+       
+       mov ah, 9
+    lea dx, filename
+    int 21h  
+       
+        mov ah, 3dh
+        mov al, 0
+        lea dx, filename
+        int 21h
+        mov bx, ax
+
+        ; read file
+        mov ah, 3fh
+        mov cx, 100
+        lea dx, buffer
+        int 21h
+
+        mov ah, 9h
+        lea dx, buffer
+        int 21h
+
+        mov ah, 3eh
+        int 21h       
+    read_file endp
+
+    end 
