@@ -2,11 +2,12 @@
 .stack 100h
 
 .data
-filename db 100 dup(0) 
+    filename db 100 dup(0) 
     buffer db 100 dup("$")
     msg db "Ingrese el nombre del archivo: $"
 
 .code
+start:
     mov ax, @data
     mov ds, ax
 
