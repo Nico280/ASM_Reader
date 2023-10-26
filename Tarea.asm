@@ -2,8 +2,9 @@
 .stack 100h
 
 .data
-    filename db 100 dup(0)
+    filename db 100 dup("0")
     buffer db 100 dup("$")
+    buffer2 db 100 dup("$")
     text db "Mi nombre es Nicolasooo a @",0
     msg db "Ingrese el nombre del archivo::: $"
     count db 3 dup(0)
@@ -16,6 +17,7 @@ start:
 
     call count_characters
     call count_words
+    call read_file
     mov ah, 4ch
     int 21h
 
@@ -119,5 +121,35 @@ convert_loop_W:
 
     ret
 count_words endp
+read_file proc
+                mov ah, 9
+                mov dx, offset msg
+                int 21h
+                mov ah, 0Ah
+                mov dx, offset filename
+                int 21h   
+                
+                mov ah, 9
+                lea dx, filename
+                int 21h  
+
+                mov ah, 3dh
+                mov al, 0
+                lea dx, filename
+                int 21h
+                mov bx, ax
+
+                mov ah, 3fh
+                mov cx, 100
+                lea dx, buffer2
+                int 21h
+
+                mov ah, 9h
+                lea dx, buffer2
+                int 21h
+
+                mov ah, 3eh
+                int 21h       
+                read_file endp
 
 end
