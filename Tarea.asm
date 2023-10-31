@@ -2,11 +2,11 @@
 .stack 100h
 
 .data
-    filename db 101 dup(0)
+    filename db 100 dup(0)
     buffer db 100 dup(0)
     buffer2 db 100 dup(0)
-    text db 101 dup(0)
-    msg db "Enter the name of the file: $"
+    text db 100 dup(0)
+    msg db "Ingrese el nombre del archivo: $"
     charCount db 0
     wordCount db 0
     newline db 13, 10, "$"
@@ -24,26 +24,63 @@ start:
     mov ah, 4ch
     int 21h
 
+
+
+read_file proc
+
 get_filename proc
-    mov ah, 9
-    mov dx, offset msg
-    int 21h
+    mov ah, 09h           ; DOS function to print a string
+    lea dx, msg        ; Load the address of the prompt string
+    int 21h               ; Call DOS to print the prompt
 
-    mov ah, 0Ah
-    mov dx, offset filename
-    int 21h
+    mov ah, 0Ah           ; DOS function to read a string from the user
+    mov dx, offset buffer ; Load the address of the input buffer
+    int 21h               ; Call DOS to read the input
 
-    ; Remove the newline character from the filename
-    mov si, offset filename
-    add si, 2
-    mov cl, [si]
-    mov ch, 0
-    add si, cx
-    mov al, 0
-    mov [si], al
+    mov si, offset buffer ; Load the address of the input buffer
+    mov di, offset filename ; Load the address of the filename variable
+
+    mov cx, 255           ; Set the loop counter to the maximum input length
+    cld                  ; Clear the direction flag for forward copying
+    rep movsb 
+
+    mov byte ptr [di], 0  ; Null-terminate the filename
+
+    ret 
+
+get_filename endp
+    
+    mov ah, 3Dh   ; Open the file
+    mov al, 2     ; Open for reading
+    lea dx , filename
+    int 21h
+    jc error_handler  ; Handle file open error
+    mov bx, ax
+
+    mov ah, 3Fh
+    lea dx,buffer ; Read from file
+    mov cx, 100  ; Number of bytes to read   
+    mov bx, ax  ; Move the file handle to BX
+    int 21h 
+    jc error_handler
+
+
+    mov ah, 3Eh  ; Close the file
+    mov bx,ax
+    int 21h
+    jc error_handler
 
     ret
-get_filename endp
+
+error_handler proc
+    mov ah, 9
+    mov dx, offset newline
+    int 21h
+    ret
+error_handler endp
+
+read_file endp
+
 
 count_characters proc
     xor bx, bx  ; Reset BX to zero
@@ -96,12 +133,12 @@ convert_loop:
 count_characters endp
 
 count_words proc
-    xor bx, bx  ; Reset BX to zero
+    xor bx, bx        ; Reset BX to zero
     mov si, offset buffer
 
 word_loop:
     mov al, [si]
-    cmp al, '@'
+    cmp al, 0        ; Check for the null terminator to determine the end of the string
     je end_word_loop
     cmp al, ' '
     je space_found
@@ -141,30 +178,4 @@ convert_loop_W:
     ret
 count_words endp
 
-read_file proc
-    mov dx, offset filename + 2
-    mov ah, 3Dh   ; Open the file
-    mov al, 0
-    int 21h
-    jc error_handler  ; Handle file open error
-    mov bx, ax
-
-    mov ah, 3Fh  ; Read from file
-    mov bx, ax   ; Move the file handle to BX
-    mov cx, 100  ; Number of bytes to read
-    lea dx, buffer2  ; Destination buffer
-    int 21h
-
-    mov ah, 3Eh  ; Close the file
-    int 21h
-
-    ret
-
-error_handler proc
-    mov ah, 9
-    mov dx, offset newline
-    int 21h
-    ret
-error_handler endp
-
-end start
+end 
