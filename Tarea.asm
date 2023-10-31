@@ -1,13 +1,12 @@
-User
 .model small
 .stack 100h
 
 .data
     filename db 101 dup(0)
-    buffer db 100 dup("$")
-    buffer2 db 100 dup("$")
-    text db "Mi nombre es Nicolasooo a @",0
-    msg db "Ingrese el nombre del archivo::: $"
+    buffer db 100 dup(0)
+    buffer2 db 100 dup(0)
+    text db 101 dup(0)
+    msg db "Enter the name of the file: $"
     charCount db 0
     wordCount db 0
     newline db 13, 10, "$"
@@ -17,12 +16,34 @@ start:
     mov ax, @data
     mov ds, ax
 
+    call get_filename
     call read_file
     call count_characters
     call count_words
 
     mov ah, 4ch
     int 21h
+
+get_filename proc
+    mov ah, 9
+    mov dx, offset msg
+    int 21h
+
+    mov ah, 0Ah
+    mov dx, offset filename
+    int 21h
+
+    ; Remove the newline character from the filename
+    mov si, offset filename
+    add si, 2
+    mov cl, [si]
+    mov ch, 0
+    add si, cx
+    mov al, 0
+    mov [si], al
+
+    ret
+get_filename endp
 
 count_characters proc
     xor bx, bx  ; Reset BX to zero
@@ -121,42 +142,20 @@ convert_loop_W:
 count_words endp
 
 read_file proc
-    mov ah, 9
-    mov dx, offset msg
-    int 21h
-    mov ah, 0Ah
-    mov dx, offset filename
-    int 21h
-
-    mov ah, 9
-    lea dx, filename
-    int 21h
-
-    mov ah ,filename
-    mov filename, buffer
-    mov buffer, buffer2
-    int 21h
-
-    mov ah, 3dh
+    mov dx, offset filename + 2
+    mov ah, 3Dh   ; Open the file
     mov al, 0
-    lea dx, filename
     int 21h
     jc error_handler  ; Handle file open error
-
     mov bx, ax
 
-    mov ah, 3fh  ; Read from file
+    mov ah, 3Fh  ; Read from file
     mov bx, ax   ; Move the file handle to BX
-
     mov cx, 100  ; Number of bytes to read
     lea dx, buffer2  ; Destination buffer
     int 21h
 
-    mov ah, 3eh  ; Close the file
-    int 21h
-
-    mov ah, 9h   ; Display the content
-    lea dx, buffer
+    mov ah, 3Eh  ; Close the file
     int 21h
 
     ret
@@ -168,4 +167,4 @@ error_handler proc
     ret
 error_handler endp
 
-end
+end start
