@@ -53,12 +53,12 @@ read_file proc
 
     ret
 
-    error_handler proc
+error_handler:
     mov ah, 9
     mov dx, offset newline
     int 21h
-    ret
-error_handler endp
+    mov dx, offset error_msg
+    int 21h
 
 read_file endp
 
@@ -158,4 +158,4 @@ convert_loop_W:
     ret
 count_words endp
 
-end start
+end starta
