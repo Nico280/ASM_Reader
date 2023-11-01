@@ -27,16 +27,18 @@ get_filename proc
 
     mov ah, 0Ah           ; DOS function to read a string from the user
     mov dx, offset filename ; Load the address of the input buffer
-    int 21h               ; Call DOS to read the input
+    int 21h 
 
-    mov si, offset buffer ; Load the address of the input buffer
-    mov di, offset filename ; Load the address of the filename variable
-
-    mov cx, 255           ; Set the loop counter to the maximum input length
-    cld                  ; Clear the direction flag for forward copying
-    rep movsb 
-
-    mov byte ptr [di], 0  ; Null-terminate the filename
+    save proc
+    mov ax ,0000
+    mov ah, 01h
+    int 21h 
+    save endp 
+    
+    cmp al, 0dh 
+    mov filename[si], al
+    inc si 
+    call save
 
     ret 
 get_filename endp
@@ -53,11 +55,6 @@ read_file proc
     mov cx, 100      ; Number of bytes to read
     mov dx, offset buffer
     mov bx, ax       ; Move the file handle to BX
-    int 21h
-    jc error_handler
-
-    mov ah, 3Eh  ; Close the file
-    mov bx, ax
     int 21h
     jc error_handler
 
