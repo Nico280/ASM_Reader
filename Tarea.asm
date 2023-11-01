@@ -2,32 +2,85 @@
 .stack 100h
 
 .data
-    filename db 100 dup("0")
-    buffer db 100 dup("$")
-    buffer2 db 100 dup("$")
-    text db "Mi nombre es Nicolasooo a @",0
-    msg db "Ingrese el nombre del archivo::: $"
-    count db 3 dup(0)
-    newline db 13, 10, "$" 
+    filename db 100 dup(0)
+    buffer db 100 dup(0)
+    text db 100 dup(0)
+    msg db "Enter the filename: $"
+    charCount db 0
+    wordCount db 0
+    newline db 13, 10, "$"
 
 .code
 start:
     mov ax, @data
     mov ds, ax
 
+    call get_filename
+    call read_file
     call count_characters
     call count_words
-    call read_file
+
     mov ah, 4ch
     int 21h
 
+get_filename proc
+    mov ah, 09h           ; DOS function to print a string
+    lea dx, msg           ; Load the address of the prompt string
+    int 21h               ; Call DOS to print the prompt
+
+    mov ah, 0Ah           ; DOS function to read a string from the user
+    mov dx, offset buffer ; Load the address of the input buffer
+    int 21h               ; Call DOS to read the input
+
+    mov si, offset buffer ; Load the address of the input buffer
+    mov di, offset filename ; Load the address of the filename variable
+
+    mov cx, 255           ; Set the loop counter to the maximum input length
+    cld                  ; Clear the direction flag for forward copying
+    rep movsb 
+
+    mov byte ptr [di], 0  ; Null-terminate the filename
+
+    ret 
+get_filename endp
+
+read_file proc
+    mov ah, 3Dh     ; Open the file
+    mov al, 0       ; Open for read-only
+    lea dx, filename
+    int 21h
+    jc error_handler  ; Handle file open error
+    mov bx, ax
+
+    mov ah, 3Fh
+    mov cx, 100      ; Number of bytes to read
+    mov dx, offset buffer
+    mov bx, ax       ; Move the file handle to BX
+    int 21h
+    jc error_handler
+
+    mov ah, 3Eh  ; Close the file
+    mov bx, ax
+    int 21h
+    jc error_handler
+
+    ret
+read_file endp
+
+error_handler proc
+    mov ah, 9
+    mov dx, offset newline
+    int 21h
+    ret
+error_handler endp
+
 count_characters proc
-    mov si, offset text
-    mov cx, 0
-    mov bx, 0  
+    xor bx, bx  ; Reset BX to zero
+    mov si, offset buffer
+
 loop1:
     mov al, [si]
-    cmp al, '@'  
+    cmp al, 0     ; Check for null terminator
     je end_loop1
     cmp al, 'A'
     jb next_char
@@ -39,33 +92,30 @@ loop1:
     jbe letter
 
 letter:
-    inc bx      
+    inc bx
 next_char:
     inc si
     jmp loop1
 
 end_loop1:
-   
-    mov al, bl  
-    mov count, al
+    mov al, bl
+    mov charCount, al
 
-   
-    mov ah, 0   
+    mov ah, 0
     mov cx, 10
-    mov di, offset buffer + 9 
+    mov di, offset text
 
 convert_loop:
-    xor dx, dx   
-    div cx      
-    add dl, '0' 
-    dec di       
-    mov [di], dl 
-    test al, al  
+    xor dx, dx
+    div cx
+    add dl, '0'
+    dec di
+    mov [di], dl
+    test al, al
     jnz convert_loop
 
-
     mov ah, 9
-    lea dx, [di]
+    lea dx, text
     int 21h
 
     lea dx, newline
@@ -75,33 +125,31 @@ convert_loop:
 count_characters endp
 
 count_words proc
-    mov si, offset text
-    mov cx, 0
-    mov bx, 0
-    mov dx, 0
+    xor bx, bx      ; Reset BX to zero
+    mov si, offset buffer
 
 word_loop:
     mov al, [si]
-    cmp al, '@'
+    cmp al, 0      ; Check for the null terminator to determine the end of the string
     je end_word_loop
-    cmp al, ' ' 
+    cmp al, ' '
     je space_found
     jmp next_char_W
 
 space_found:
-    inc bx 
+    inc bx
 
 next_char_W:
     inc si
     jmp word_loop
 
 end_word_loop:
-    mov al, bl 
-    mov count, al
+    mov al, bl
+    mov wordCount, al
 
     mov ah, 0
     mov cx, 10
-    mov di, offset buffer + 9
+    mov di, offset text
 
 convert_loop_W:
     xor dx, dx
@@ -113,7 +161,7 @@ convert_loop_W:
     jnz convert_loop_W
 
     mov ah, 9
-    lea dx, [di]
+    lea dx, text
     int 21h
 
     lea dx, newline
@@ -121,35 +169,5 @@ convert_loop_W:
 
     ret
 count_words endp
-read_file proc
-                mov ah, 9
-                mov dx, offset msg
-                int 21h
-                mov ah, 0Ah
-                mov dx, offset filename
-                int 21h   
-                
-                mov ah, 9
-                lea dx, filename
-                int 21h  
-
-                mov ah, 3dh
-                mov al, 0
-                lea dx, filename
-                int 21h
-                mov bx, ax
-
-                mov ah, 3fh
-                mov cx, 100
-                lea dx, buffer2
-                int 21h
-
-                mov ah, 9h
-                lea dx, buffer2
-                int 21h
-
-                mov ah, 3eh
-                int 21h       
-                read_file endp
 
 end

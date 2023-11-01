@@ -1,0 +1,8 @@
+# Ignore compiled files and executables
+*.bat
+*.exe
+*.obj
+*.map
+
+# Ignore specific files
+README.md
