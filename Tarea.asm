@@ -6,6 +6,7 @@
     buffer db 100 dup(0)
     text db 100 dup(0)
     msg db "Enter the filename: $"
+    error_msg db "Error $"
     charCount db 0
     wordCount db 0
     newline db 13, 10, "$"
@@ -63,12 +64,13 @@ read_file proc
 
     ret
 
-    error_handler proc
+    error_handler:
     mov ah, 9
     mov dx, offset newline
     int 21h
-    ret
-error_handler endp
+    mov dx, offset error_msg 
+    int 21h
+     
 
 read_file endp
 
