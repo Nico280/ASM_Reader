@@ -4,9 +4,8 @@
 .data
     filename db 100 dup(0)
     buffer db 100 dup(0)
-    buffer2 db 100 dup(0)
     text db 100 dup(0)
-    msg db "Ingrese el nombre del archivo: $"
+    msg db "Enter the filename: $"
     charCount db 0
     wordCount db 0
     newline db 13, 10, "$"
@@ -24,13 +23,9 @@ start:
     mov ah, 4ch
     int 21h
 
-
-
-read_file proc
-
 get_filename proc
     mov ah, 09h           ; DOS function to print a string
-    lea dx, msg        ; Load the address of the prompt string
+    lea dx, msg           ; Load the address of the prompt string
     int 21h               ; Call DOS to print the prompt
 
     mov ah, 0Ah           ; DOS function to read a string from the user
@@ -47,30 +42,30 @@ get_filename proc
     mov byte ptr [di], 0  ; Null-terminate the filename
 
     ret 
-
 get_filename endp
-    
-    mov ah, 3Dh   ; Open the file
-    mov al, 2     ; Open for reading
-    lea dx , filename
+
+read_file proc
+    mov ah, 3Dh     ; Open the file
+    mov al, 0       ; Open for read-only
+    lea dx, filename
     int 21h
     jc error_handler  ; Handle file open error
     mov bx, ax
 
     mov ah, 3Fh
-    lea dx,buffer ; Read from file
-    mov cx, 100  ; Number of bytes to read   
-    mov bx, ax  ; Move the file handle to BX
-    int 21h 
+    mov cx, 100      ; Number of bytes to read
+    mov dx, offset buffer
+    mov bx, ax       ; Move the file handle to BX
+    int 21h
     jc error_handler
 
-
     mov ah, 3Eh  ; Close the file
-    mov bx,ax
+    mov bx, ax
     int 21h
     jc error_handler
 
     ret
+read_file endp
 
 error_handler proc
     mov ah, 9
@@ -79,16 +74,13 @@ error_handler proc
     ret
 error_handler endp
 
-read_file endp
-
-
 count_characters proc
     xor bx, bx  ; Reset BX to zero
     mov si, offset buffer
 
 loop1:
     mov al, [si]
-    cmp al, '@'
+    cmp al, 0     ; Check for null terminator
     je end_loop1
     cmp al, 'A'
     jb next_char
@@ -111,7 +103,7 @@ end_loop1:
 
     mov ah, 0
     mov cx, 10
-    mov di, offset buffer + 9
+    mov di, offset text
 
 convert_loop:
     xor dx, dx
@@ -123,7 +115,7 @@ convert_loop:
     jnz convert_loop
 
     mov ah, 9
-    lea dx, [di]
+    lea dx, text
     int 21h
 
     lea dx, newline
@@ -133,12 +125,12 @@ convert_loop:
 count_characters endp
 
 count_words proc
-    xor bx, bx        ; Reset BX to zero
+    xor bx, bx      ; Reset BX to zero
     mov si, offset buffer
 
 word_loop:
     mov al, [si]
-    cmp al, 0        ; Check for the null terminator to determine the end of the string
+    cmp al, 0      ; Check for the null terminator to determine the end of the string
     je end_word_loop
     cmp al, ' '
     je space_found
@@ -157,7 +149,7 @@ end_word_loop:
 
     mov ah, 0
     mov cx, 10
-    mov di, offset buffer + 9
+    mov di, offset text
 
 convert_loop_W:
     xor dx, dx
@@ -169,7 +161,7 @@ convert_loop_W:
     jnz convert_loop_W
 
     mov ah, 9
-    lea dx, [di]
+    lea dx, text
     int 21h
 
     lea dx, newline
@@ -178,4 +170,4 @@ convert_loop_W:
     ret
 count_words endp
 
-end 
+end
