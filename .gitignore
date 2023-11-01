@@ -1,7 +1,7 @@
 # Ignore compiled files and executables
 *.bat
 *.exe
-*.obj
+*.OBJ
 *.map
 
 # Ignore specific files
