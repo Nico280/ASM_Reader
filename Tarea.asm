@@ -5,11 +5,10 @@
     filename db 100 dup('$')
     filename_C db 100 dup('$')
     buffer db 100 dup(0)
-    text db 100 dup(0)
+    text db "Mi nombre es Nicolasooo a @",0
     msg db "Enter the filename: $"
     error_msg db "Error $"
-    charCount db 0
-    wordCount db 0
+count db 3 dup(0)
     newline db 13, 10, "$"
 
 .code
@@ -18,12 +17,8 @@ start:
     mov ds, ax
 
     call get_filename
-
-    lea si, filename
-    lea di, filename_C
-    call Clean_text
-
     call read_file
+    
     call count_characters
     call count_words
 
@@ -168,48 +163,14 @@ convert_loop_W:
 
     ret
 count_words endp
+clean_filename proc
+    
+    cln_f_loop:
+    
 
-Clean_text proc
-   xor cx, cx  ; Clear CX to use it as a counter
+    clean_filename endp
 
-    modify_loop:
-    mov al, [si]    ; Load the character at SI into AL
-    cmp al, 0       ; Check if it's the null terminator (end of string)
-    je done         ; If it's the end of the string, exit the loop
-
-    ; Check if the character is a letter (A-Z, a-z) or a period '.'
-    cmp al, 'A'
-    jl not_a_letter_or_period
-    cmp al, 'Z'
-    jbe is_a_letter_or_period
-    cmp al, 'a'
-    jl not_a_letter_or_period
-    cmp al, 'z'
-    ja not_a_letter_or_period
-    cmp al, '.'     ; Check if it's a period
-    jne not_a_letter_or_period
-
-    is_a_letter_or_period:
-    ; If it's a letter or period, keep it in the output string
-    mov [di], al
-    jmp character_processed
-
-    not_a_letter_or_period:
-    ; If it's not a letter or period, replace it with '0'
-    mov al, '0'
-    mov [di], al
-
-    character_processed:
-    inc si  ; Move to the next character in the input string
-    inc di  ; Move to the next character in the output string
-    inc cx  ; Increment the counter
-    jmp modify_loop
-
-    done:
-    ; Null-terminate the output string
-    mov byte ptr [di], 0
-
-    ret
- Clean_text endp
+ mov ah, 4ch
+ int 21h
 
 end start
