@@ -20,16 +20,13 @@ start:
     call count_characters
     call count_words
 
-    mov ah, 4ch
-    int 21h
-
 get_filename proc
     mov ah, 09h           ; DOS function to print a string
     lea dx, msg           ; Load the address of the prompt string
     int 21h               ; Call DOS to print the prompt
 
     mov ah, 0Ah           ; DOS function to read a string from the user
-    mov dx, offset buffer ; Load the address of the input buffer
+    mov dx, offset filename ; Load the address of the input buffer
     int 21h               ; Call DOS to read the input
 
     mov si, offset buffer ; Load the address of the input buffer
@@ -71,7 +68,7 @@ read_file proc
     mov dx, offset newline
     int 21h
     ret
-    error_handler endp
+error_handler endp
 
 read_file endp
 
@@ -172,5 +169,8 @@ convert_loop_W:
 
     ret
 count_words endp
+
+    mov ah, 4ch
+    int 21h
 
 end
