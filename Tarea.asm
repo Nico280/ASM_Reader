@@ -65,14 +65,17 @@ read_file proc
     jc error_handler
 
     ret
-read_file endp
 
-error_handler proc
+    error_handler proc
     mov ah, 9
     mov dx, offset newline
     int 21h
     ret
-error_handler endp
+    error_handler endp
+
+read_file endp
+
+
 
 count_characters proc
     xor bx, bx  ; Reset BX to zero
