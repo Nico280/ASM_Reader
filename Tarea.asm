@@ -2,8 +2,9 @@
 .stack 100h
 
 .data
-    filename db 100 dup('$')
+    filename db 20 dup('$'),0
     filename_C db 100 dup('$')
+    cleaned_filename db 100 dup(0) 
     buffer db 100 dup(0)
     text db "Mi nombre es Nicolasooo a @",0
     msg db "Enter the filename: $"
@@ -17,6 +18,7 @@ start:
     mov ds, ax
 
     call get_filename
+    call clean_filename
     call read_file
     
     call count_characters
@@ -40,7 +42,7 @@ get_filename endp
 read_file proc
     mov ah, 3Dh     ; Open the file
     mov al, 0       ; Open for read-only
-    lea dx, filename_C
+    lea dx, filename
     int 21h
     jc error_handler  ; Handle file open error
     mov bx, ax
@@ -163,12 +165,44 @@ convert_loop_W:
 
     ret
 count_words endp
-clean_filename proc
-    
-    cln_f_loop:
-    
 
-    clean_filename endp
+
+
+clean_filename proc
+    mov si, offset filename
+    mov di, offset cleaned_filename ; Create a destination pointer
+    cld ; Set the direction flag to forward for string operations
+
+cln_f_loop:
+    mov al, [si]
+    cmp al, 0
+    je end_loop_c
+    cmp al, 'A'
+    jb not_letter_or_period
+    cmp al, 'Z'
+    jbe letter_or_period
+    cmp al, 'a'
+    jb not_letter_or_period
+    cmp al, 'z'
+    jbe letter_or_period
+    cmp al, '.'
+    je letter_or_period
+
+not_letter_or_period:
+    mov byte ptr [di], 0 ; Write null character to cleaned string
+    jmp end_loop_c
+
+letter_or_period:
+    mov [di], al ; Copy the letter or period to the cleaned string
+    inc di
+
+end_loop_c:
+    inc si
+    jmp cln_f_loop
+
+clean_filename endp
+
+
 
  mov ah, 4ch
  int 21h
