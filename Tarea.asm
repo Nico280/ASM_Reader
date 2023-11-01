@@ -21,6 +21,9 @@ start:
     call count_characters
     call count_words
 
+    mov ah, 4Ch
+    int 21h
+
 get_filename proc
     mov ah, 09h           ; DOS function to print a string
     lea dx, msg           ; Load the address of the prompt string
@@ -28,18 +31,9 @@ get_filename proc
 
     mov ah, 0Ah           ; DOS function to read a string from the user
     mov dx, offset filename ; Load the address of the input buffer
-    int 21h               ; Call DOS to read the input
+    int 21h
 
-    mov si, offset buffer ; Load the address of the input buffer
-    mov di, offset filename ; Load the address of the filename variable
-
-    mov cx, 255           ; Set the loop counter to the maximum input length
-    cld                  ; Clear the direction flag for forward copying
-    rep movsb 
-
-    mov byte ptr [di], 0  ; Null-terminate the filename
-
-    ret 
+    ret
 get_filename endp
 
 read_file proc
@@ -57,24 +51,16 @@ read_file proc
     int 21h
     jc error_handler
 
-    mov ah, 3Eh  ; Close the file
-    mov bx, ax
-    int 21h
-    jc error_handler
-
     ret
 
-    error_handler:
+    error_handler proc
     mov ah, 9
     mov dx, offset newline
     int 21h
-    mov dx, offset error_msg 
-    int 21h
-     
+    ret
+error_handler endp
 
 read_file endp
-
-
 
 count_characters proc
     xor bx, bx  ; Reset BX to zero
@@ -172,7 +158,4 @@ convert_loop_W:
     ret
 count_words endp
 
-    mov ah, 4ch
-    int 21h
-
-end
+end start
