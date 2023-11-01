@@ -6,6 +6,7 @@
     buffer db 100 dup(0)
     text db 100 dup(0)
     msg db "Enter the filename: $"
+    error_msg db "Error $"
     charCount db 0
     wordCount db 0
     newline db 13, 10, "$"
@@ -20,6 +21,9 @@ start:
     call count_characters
     call count_words
 
+    mov ah, 4Ch
+    int 21h
+
 get_filename proc
     mov ah, 09h           ; DOS function to print a string
     lea dx, msg           ; Load the address of the prompt string
@@ -27,20 +31,9 @@ get_filename proc
 
     mov ah, 0Ah           ; DOS function to read a string from the user
     mov dx, offset filename ; Load the address of the input buffer
-    int 21h 
+    int 21h
 
-    save proc
-    mov ax ,0000
-    mov ah, 01h
-    int 21h 
-    save endp 
-    
-    cmp al, 0dh 
-    mov filename[si], al
-    inc si 
-    call save
-
-    ret 
+    ret
 get_filename endp
 
 read_file proc
@@ -60,16 +53,14 @@ read_file proc
 
     ret
 
-    error_handler proc
+error_handler:
     mov ah, 9
     mov dx, offset newline
     int 21h
-    ret
-error_handler endp
+    mov dx, offset error_msg
+    int 21h
 
 read_file endp
-
-
 
 count_characters proc
     xor bx, bx  ; Reset BX to zero
@@ -167,7 +158,4 @@ convert_loop_W:
     ret
 count_words endp
 
-    mov ah, 4ch
-    int 21h
-
-end
+end start
