@@ -1,10 +1,8 @@
-ASM.bat
-DEB.bat 
-MAKE.exe
+# Ignore compiled files and executables
+*.bat
+*.exe
+*.obj
+*.map
+
+# Ignore specific files
 README.md
-TAREA.exe
-TAREA.obj
-TAREA.map
-TASM.exe
-TD.exe
-TLINK.exe
