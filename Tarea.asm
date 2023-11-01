@@ -69,12 +69,12 @@ error_handler:
 read_file endp
 
 count_characters proc
-    xor bx, bx  ; Reset BX to zero
-    mov si, offset buffer
-
+    mov si, offset text
+    mov cx, 0
+    mov bx, 0  
 loop1:
     mov al, [si]
-    cmp al, 0     ; Check for null terminator
+    cmp al, '@'  
     je end_loop1
     cmp al, 'A'
     jb next_char
@@ -86,30 +86,33 @@ loop1:
     jbe letter
 
 letter:
-    inc bx
+    inc bx      
 next_char:
     inc si
     jmp loop1
 
 end_loop1:
-    mov al, bl
-    mov charCount, al
+   
+    mov al, bl  
+    mov count, al
 
-    mov ah, 0
+   
+    mov ah, 0   
     mov cx, 10
-    mov di, offset text
+    mov di, offset buffer + 9 
 
 convert_loop:
-    xor dx, dx
-    div cx
-    add dl, '0'
-    dec di
-    mov [di], dl
-    test al, al
+    xor dx, dx   
+    div cx      
+    add dl, '0' 
+    dec di       
+    mov [di], dl 
+    test al, al  
     jnz convert_loop
 
+
     mov ah, 9
-    lea dx, text
+    lea dx, [di]
     int 21h
 
     lea dx, newline
@@ -119,31 +122,33 @@ convert_loop:
 count_characters endp
 
 count_words proc
-    xor bx, bx      ; Reset BX to zero
-    mov si, offset buffer
+    mov si, offset text
+    mov cx, 0
+    mov bx, 0
+    mov dx, 0
 
 word_loop:
     mov al, [si]
-    cmp al, 0      ; Check for the null terminator to determine the end of the string
+    cmp al, '@'
     je end_word_loop
-    cmp al, ' '
+    cmp al, ' ' 
     je space_found
     jmp next_char_W
 
 space_found:
-    inc bx
+    inc bx 
 
 next_char_W:
     inc si
     jmp word_loop
 
 end_word_loop:
-    mov al, bl
-    mov wordCount, al
+    mov al, bl 
+    mov count, al
 
     mov ah, 0
     mov cx, 10
-    mov di, offset text
+    mov di, offset buffer + 9
 
 convert_loop_W:
     xor dx, dx
@@ -155,7 +160,7 @@ convert_loop_W:
     jnz convert_loop_W
 
     mov ah, 9
-    lea dx, text
+    lea dx, [di]
     int 21h
 
     lea dx, newline
@@ -163,6 +168,7 @@ convert_loop_W:
 
     ret
 count_words endp
+
 Clean_text proc
    xor cx, cx  ; Clear CX to use it as a counter
 

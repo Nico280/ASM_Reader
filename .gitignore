@@ -1,5 +1,5 @@
 # Ignore compiled files and executables
-*.OBJ
+TAREA.OBJ
 *.MAP
 
 # Ignore specific files
