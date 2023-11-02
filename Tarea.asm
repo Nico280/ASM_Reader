@@ -4,7 +4,7 @@
 .data
     filename db 20 dup('$'),0
     filename_C db 100 dup('$')
-    cleaned_filename db 100 dup(0) 
+    cleaned_filename db 20 dup(0) 
     buffer db 100 dup(0)
     text db "Mi nombre es Nicolasooo a @",0
     msg db "Enter the filename: $"
@@ -42,7 +42,7 @@ get_filename endp
 read_file proc
     mov ah, 3Dh     ; Open the file
     mov al, 0       ; Open for read-only
-    lea dx, filename
+    lea dx, cleaned_filename
     int 21h
     jc error_handler  ; Handle file open error
     mov bx, ax
@@ -177,6 +177,8 @@ cln_f_loop:
     mov al, [si]
     cmp al, 0
     je end_loop_c
+        cmp al, '.'
+    je letter_or_period
     cmp al, 'A'
     jb not_letter_or_period
     cmp al, 'Z'
@@ -185,20 +187,21 @@ cln_f_loop:
     jb not_letter_or_period
     cmp al, 'z'
     jbe letter_or_period
-    cmp al, '.'
-    je letter_or_period
+  
 
 not_letter_or_period:
     mov byte ptr [di], 0 ; Write null character to cleaned string
-    jmp end_loop_c
+    jmp cont_loop_c
 
 letter_or_period:
     mov [di], al ; Copy the letter or period to the cleaned string
     inc di
 
-end_loop_c:
+cont_loop_c:
     inc si
     jmp cln_f_loop
+end_loop_c:
+    ret
 
 clean_filename endp
 
