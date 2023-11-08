@@ -3,10 +3,9 @@
 
 .data
     filename db 20 dup('$'),0
-    filename_C db 100 dup('$')
-    cleaned_filename db 20 dup(0) 
-    buffer db 100 dup(0)
-    text db "Mi nombre es Nicolasooo a @",0
+    filename_C db 20 dup(' ')
+    cleaned_filename db 20 dup(' ') 
+    buffer db 100 dup(' ')
     msg db "Enter the filename: $"
     error_msg db "Error $"
 count db 3 dup(0)
@@ -40,33 +39,39 @@ get_filename proc
 get_filename endp
 
 read_file proc
-    mov ah, 3Dh     ; Open the file
-    mov al, 0       ; Open for read-only
-    lea dx, cleaned_filename
-    int 21h
-    jc error_handler  ; Handle file open error
-    mov bx, ax
+  mov ah, 3Dh              ; DOS function to open a file
+    lea dx, cleaned_filename ; Load the address of the cleaned filename
+    mov al, 0               ; Open file for reading (AL = 0)
+    int 21h                 ; Call DOS to open the file
 
-    mov ah, 3Fh
-    mov cx, 100      ; Number of bytes to read
-    mov dx, offset buffer
-    mov bx, ax       ; Move the file handle to BX
-    int 21h
-    jc error_handler
+    jc file_error           ; Jump if the file opening fails
 
+    mov bx, ax              ; Store the file handle in BX
+
+    mov ah, 3Fh              ; DOS function to read from a file
+    mov cx, 100              ; Number of bytes to read
+    lea dx, buffer           ; Load the address of the buffer
+    int 21h                  ; Call DOS to read from the file
+
+    jc file_error           ; Jump if the file reading fails
+
+    mov ah, 3Eh              ; DOS function to close a file
+    mov bx, ax              ; Get the file handle back into BX
+    int 21h                 ; Call DOS to close the file
+
+    jmp file_read_success
+
+file_error:
+    lea dx, error_msg
+    int 21h
+
+file_read_success:
     ret
-
-error_handler:
-    mov ah, 9
-    mov dx, offset newline
-    int 21h
-    mov dx, offset error_msg
-    int 21h
 
 read_file endp
 
 count_characters proc
-    mov si, offset text
+    mov si, offset buffer
     mov cx, 0
     mov bx, 0  
 loop1:
@@ -119,7 +124,7 @@ convert_loop:
 count_characters endp
 
 count_words proc
-    mov si, offset text
+    mov si, offset buffer
     mov cx, 0
     mov bx, 0
     mov dx, 0
@@ -175,9 +180,9 @@ clean_filename proc
 
 cln_f_loop:
     mov al, [si]
-    cmp al, 0
+    cmp al, ' '
     je end_loop_c
-        cmp al, '.'
+    cmp al, '.'
     je letter_or_period
     cmp al, 'A'
     jb not_letter_or_period
